@@ -5,16 +5,16 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
-import * as createError from 'http-errors'
+import { TodoUpdate } from '../models/TodoUpdate';
 
 // TODO: Implement businessLogic
-const todosAcess: TodoAccess = new TodoAccess()
+const todoAcess: TodoAccess = new TodoAccess()
 const attachmentUtils = new AttachmentUtils()
 const logger = createLogger('bussiness Layer Logger')
 
 export async function getTodosForUser(userId: string) {
     try{
-        let todos = await todosAcess.getTodoList(userId)
+        let todos = await todoAcess.getTodoList(userId)
         return todos
     }   
     catch(err){
@@ -39,7 +39,7 @@ export async function createTodo(todoRequest: CreateTodoRequest, userId: string)
     }
 
     try{
-        await todosAcess.insertTodoItem(todoItem)
+        await todoAcess.insertTodoItem(todoItem)
         return todoItem
     }
     catch(error){
@@ -51,9 +51,21 @@ export async function createTodo(todoRequest: CreateTodoRequest, userId: string)
     }
 }
 
+export async function updateTodo(todoId: string, userId: string, updatedTodoItem: UpdateTodoRequest) {
+    const todoUpdate: TodoUpdate = {
+        ...updatedTodoItem
+    }
+
+    try {
+        await todoAcess.updateTodoItem(todoId, userId, todoUpdate)
+    } catch (err) {
+        return err
+    }
+}
+
 export async function deleteTodo(todoId: string, userId: string){
     try{
-        await todosAcess.deleteTodoItem(todoId, userId)
+        await todoAcess.deleteTodoItem(todoId, userId)
     }
     catch(error){
         return error
@@ -64,7 +76,7 @@ export async function createAttachmentPresignedUrl(todoId: string, userId: strin
     try{
         const imageId = uuid.v4()
         let url = await attachmentUtils.generateSignedUrl(imageId)
-        await todosAcess.updateTodoItemAttachmentUrl(todoId, userId, imageId)
+        await todoAcess.updateTodoItemAttachmentUrl(todoId, userId, imageId)
         return url
     }
     catch(error){  
