@@ -3,7 +3,7 @@ import * as AWSXRay from 'aws-xray-sdk'
 
 const XAWS = AWSXRay.captureAWS(AWS)
 const s3 = new XAWS.S3({
-    singnatureVersion: 'v4'
+    signatureVersion: 'v4'
 })
 // TODO: Implement the fileStogare logic
 export class AttachmentUtils{
