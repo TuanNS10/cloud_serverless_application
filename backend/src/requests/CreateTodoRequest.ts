@@ -4,5 +4,5 @@
 export interface CreateTodoRequest {
   name: string
   dueDate: string
-  attachmentUrl
+  attachmentUrl?: string
 }

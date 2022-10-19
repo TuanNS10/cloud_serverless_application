@@ -1,11 +1,10 @@
-app: serverless-todo-app
-service: serverless-todo-app
+app: project4-serverless-todo-app
+service: project4-serverless-todo-app
 
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
-  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -50,36 +49,36 @@ functions:
   # Provide iamRoleStatements property for performing Actions on DynamoDB
   GetTodos:
     handler: src/lambda/http/getTodos.handler
+    tracing: true
     events:
       - http:
           method: get
           path: todos
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: "Allow"        
         Action:
-          - dynamodb:Query 
+          - dynamodb:Query
         Resource: !GetAtt TodosTable.Arn
-      - Effect: "Allow"
+      - Effect: "Allow"        
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:947888972037:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
-      
+
   # TODO: Configure this function - 
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
   # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
-  # To validate incoming HTTP requests, we have provided the request schemas in function definition below. 
+  # To validate incoming HTTP requests, we have provided the request schemas in function definition below.
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
+    tracing: true
     events:
       - http:
           method: post
           path: todos
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
           request:
             schemas:
               application/json: ${file(models/create-todo-model.json)}
@@ -97,17 +96,18 @@ functions:
     events:
       - http:
           method: patch
+          cors: true
           path: todos/{todoId}
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
           request:
             schemas:
               application/json: ${file(models/update-todo-model.json)}
     iamRoleStatements:
-      - Effect: "Allow"
+      - Effect: "Allow"        
         Action:
-          - dynamodb:UpdateItem
+          - dynamodb:UpdateItem        
         Resource: !GetAtt TodosTable.Arn
+
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   DeleteTodo:
@@ -116,14 +116,15 @@ functions:
     events:
       - http:
           method: delete
+          cors: true
           path: todos/{todoId}
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
-      - Effect: "Allow"
+      - Effect: "Allow"        
         Action:
-          - dynamodb:DeleteItem
+          - dynamodb:DeleteItem        
         Resource: !GetAtt TodosTable.Arn
+
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   GenerateUploadUrl:
@@ -132,9 +133,9 @@ functions:
     events:
       - http:
           method: post
+          cors: true
           path: todos/{todoId}/attachment
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -145,31 +146,23 @@ functions:
         Action:
           - dynamodb:UpdateItem
         Resource: !GetAtt TodosTable.Arn
+
 resources:
   Resources:
     # Add necessary AWS resources. You will need at least the following AWS resources
     # TODO: Fill the properties
-    # Feel free to change the names as you like. 
+    # Feel free to change the names as you like.
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
         ResponseParameters:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,PATCH'"
         ResponseType: DEFAULT_4XX
         RestApiId:
-          Ref: ApiGatewayRestApi
+          Ref: 'ApiGatewayRestApi'
     
-    RequestBodyValidator:
-      Type: AWS::ApiGateway::RequestValidator
-      Properties:
-        Name: 'request-body-validator'
-        RestApiId:
-          Ref: ApiGatewayRestApi
-        ValidateRequestBody: true
-        ValidateRequestParameters: false
-        
     # TODO: Create a DynamoDB table with local secondary index and a composite key
     TodosTable:
       Type: AWS::DynamoDB::Table
@@ -206,16 +199,17 @@ resources:
         BucketName: ${self:provider.environment.ATTACHMENT_S3_BUCKET}
         CorsConfiguration:
           CorsRules:
-            - AllowedMethods:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
                 - GET
                 - PUT
                 - POST
                 - DELETE
                 - HEAD
-              AllowedOrigins:
-                - '*'
-              AllowedHeaders:
-                - '*'
               MaxAge: 3000
 
     # TODO: Complete the policy below and attach it to the bucket defined above
@@ -235,3 +229,4 @@ resources:
                 - 's3:PutObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+  

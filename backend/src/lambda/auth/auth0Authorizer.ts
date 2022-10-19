@@ -56,27 +56,26 @@ export const handler = async (
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
   let options = {
-    headers:{
+    headers: {
       'Authorization': authHeader
     }
   }
   let jwks
   try{
-    let response = await Axios.get(jwksUrl, options)
-    jwks = response.data 
-  }
-  catch (error){
-    logger.error('Error retrieving JWKS', {error: error.message})
+  let response = await Axios.get(jwksUrl, options)
+  jwks = response.data
+  } catch (e) {
+    logger.error('Error retrieving JWKS', { error: e.message })
   }
 
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
   const kid = jwt.header['kid']
 
-  const singinkey = jwks.keys.find(key => key.kid === kid)
-  let cert = singinkey.x5c[0].match(/.{1,64}/g).join('\n')
-  cert = `-----BEGIN CERTIFICATE-----\n${cert}-----END CERTIFICATE-----\n`
+  const signingKey = jwks.keys.find(key => key.kid === kid)
 
+  let cert = signingKey.x5c[0].match(/.{1,64}/g).join('\n');
+  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`;
   return verify(token, cert, {algorithms: ['RS256']}) as JwtPayload
 }
 

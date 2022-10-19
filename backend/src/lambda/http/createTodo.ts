@@ -5,28 +5,28 @@ import { cors } from 'middy/middlewares'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { getUserId } from '../utils';
 import { createTodo } from '../../businessLogic/todos'
-import { createLogger } from '../../utils/logger'
+import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('createTodo')
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const newTodo: CreateTodoRequest = JSON.parse(event.body)
-    const userId: string = getUserId(event)
-    // TODO: Implement creating a new TODO item
+    const userId : string = getUserId(event)
+    
     try {
       const response = await createTodo(newTodo, userId)
       return {
         statusCode: 201,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
+          'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({
-          item: response
-        })
+        body: JSON.stringify(
+          {
+            item: response
+          }
+        )
       }
-    }
-    catch (err) {
+    } catch (err) {
       logger.error('Unable to complete the create Todo Operation for user', {
         userId: userId,
         error: err
@@ -34,8 +34,7 @@ export const handler = middy(
       return {
         statusCode: 500,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
+          'Access-Control-Allow-Origin': '*'
         },
         body: JSON.stringify({
           error: err

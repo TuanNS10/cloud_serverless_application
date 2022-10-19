@@ -1,54 +1,55 @@
-import { TodoAccess } from '../dataLayer/todosAcess'
+import { TodosAccess } from '../dataLayer/todosAcess'
 import { AttachmentUtils } from '../helpers/attachmentUtils';
 import { TodoItem } from '../models/TodoItem'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
-import { TodoUpdate } from '../models/TodoUpdate';
+import { TodoUpdate } from '../models/TodoUpdate'
 
-// TODO: Implement businessLogic
-const todoAcess: TodoAccess = new TodoAccess()
+const todoAccess: TodosAccess = new TodosAccess()
 const attachmentUtils = new AttachmentUtils()
-const logger = createLogger('bussiness Layer Logger')
-
+const logger = createLogger('businessLayerLogger')
 export async function getTodosForUser(userId: string) {
-    try{
-        let todos = await todoAcess.getTodoList(userId)
+    try {
+        let todos = await todoAccess.getTodoList(userId)
         return todos
-    }   
-    catch(err){
-        logger.error('Unable to get todo list',{
+    } catch (err) {
+        logger.error("Unable to get list of ToDos", {
             userId,
             error: err
         })
         return err
-    } 
+    }
 }
 
-export async function createTodo(todoRequest: CreateTodoRequest, userId: string){
+
+export async function createTodo(todoRequest: CreateTodoRequest, userId: string) {
+
     const todoId = uuid.v4()
-    const todoItem: TodoItem = {
+    const todoItem: TodoItem =
+    {
         userId: userId,
         todoId: todoId,
-        createdAt: new Date().toLocaleDateString(),
+        createdAt: new Date().toLocaleString(),
         name: todoRequest.name,
         dueDate: todoRequest.dueDate,
         done: false,
         attachmentUrl: todoRequest.attachmentUrl
     }
 
-    try{
-        await todoAcess.insertTodoItem(todoItem)
+    try {
+        await todoAccess.insertTodoItem(todoItem)
         return todoItem
-    }
-    catch(error){
-        logger.error('Unable to insert Todo Item',{
-            methodName: 'todos.insertTodoItem',
+    } catch (err) {
+        logger.error("Unable to save ToDo Item", {
+            methodName: 'todos.intertTodoItem',
             userId,
-            error: error
+            error: err
         })
+        return err
     }
+
 }
 
 export async function updateTodo(todoId: string, userId: string, updatedTodoItem: UpdateTodoRequest) {
@@ -57,33 +58,33 @@ export async function updateTodo(todoId: string, userId: string, updatedTodoItem
     }
 
     try {
-        await todoAcess.updateTodoItem(todoId, userId, todoUpdate)
+        await todoAccess.updateTodoItem(todoId, userId, todoUpdate)
     } catch (err) {
         return err
     }
 }
 
-export async function deleteTodo(todoId: string, userId: string){
-    try{
-        await todoAcess.deleteTodoItem(todoId, userId)
-    }
-    catch(error){
-        return error
+export async function deleteTodo(todoId: string, userId: string) {
+
+    try {
+        await todoAccess.deleteTodoItem(todoId, userId)
+    } catch (err) {
+        return err
     }
 }
 
-export async function createAttachmentPresignedUrl(todoId: string, userId: string){
-    try{
-        const imageId = uuid.v4()
+export async function createAttachmentPresignedUrl(todoId: string, userId: string) {
+    try {
+        const imageId = uuid.v4();
         let url = await attachmentUtils.generateSignedUrl(imageId)
-        await todoAcess.updateTodoItemAttachmentUrl(todoId, userId, imageId)
+        await todoAccess.updateTodoItemAttachmentUrl(todoId, userId, imageId)
         return url
-    }
-    catch(error){  
-        logger.error('Unable to update Todo Item attachment Url',{
+    } catch (err) {
+        logger.error("Unable to update ToDo Item attachment Url", {
             methodName: 'todos.createAttachmentPresignedUrl',
             userId,
-            error: error
+            error: err
         })
+        return err
     }
 }
