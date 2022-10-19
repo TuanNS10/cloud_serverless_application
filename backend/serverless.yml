@@ -5,6 +5,7 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -55,18 +56,15 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
-      - Effect: "Allow"
+      - Effect: "Allow"        
         Action:
-          - dynamodb:GetItem
-          - dynamodb:Query
-          - dynamodb:Scan
+          - dynamodb:Query 
         Resource: !GetAtt TodosTable.Arn
       - Effect: "Allow"
         Action:
-          - dynamodb:GetItem
           - dynamodb:Query
-          - dynamodb:Scan
         Resource: arn:aws:dynamodb:${self:provider.region}:947888972037:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
       
   # TODO: Configure this function - 
@@ -81,6 +79,7 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
           request:
             schemas:
               application/json: ${file(models/create-todo-model.json)}
@@ -100,6 +99,7 @@ functions:
           method: patch
           path: todos/{todoId}
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
           request:
             schemas:
               application/json: ${file(models/update-todo-model.json)}
@@ -118,6 +118,7 @@ functions:
           method: delete
           path: todos/{todoId}
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: "Allow"
         Action:
@@ -133,6 +134,7 @@ functions:
           method: post
           path: todos/{todoId}/attachment
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -154,11 +156,20 @@ resources:
         ResponseParameters:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,PATCH'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
         ResponseType: DEFAULT_4XX
-        RestApiId: 
-          Ref: 'ApiGatewayRestApi'
-  
+        RestApiId:
+          Ref: ApiGatewayRestApi
+    
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+        
     # TODO: Create a DynamoDB table with local secondary index and a composite key
     TodosTable:
       Type: AWS::DynamoDB::Table
