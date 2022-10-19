@@ -1,5 +1,5 @@
-app: project-serverless-todo-app
-service: project-serverless-todo-app
+app: project04-serverless-todo-app
+service: project04-serverless-todo-app
 
 plugins:
   - serverless-webpack
@@ -24,7 +24,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: sanhtuan-serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: sanhtuan77-serverless-c4-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
