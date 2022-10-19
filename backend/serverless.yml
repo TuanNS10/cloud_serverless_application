@@ -1,10 +1,11 @@
-app: project4-serverless-todo-app
-service: project4-serverless-todo-app
+app: project-serverless-todo-app
+service: project-serverless-todo-app
 
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -23,7 +24,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: nguyentuan-serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: sanhtuan-serverless-c4-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -56,6 +57,7 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: "Allow"        
         Action:
@@ -79,6 +81,7 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
           request:
             schemas:
               application/json: ${file(models/create-todo-model.json)}
@@ -99,6 +102,7 @@ functions:
           cors: true
           path: todos/{todoId}
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
           request:
             schemas:
               application/json: ${file(models/update-todo-model.json)}
@@ -119,6 +123,7 @@ functions:
           cors: true
           path: todos/{todoId}
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: "Allow"        
         Action:
@@ -136,6 +141,7 @@ functions:
           cors: true
           path: todos/{todoId}/attachment
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -162,6 +168,15 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: 'ApiGatewayRestApi'
+    
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
     
     # TODO: Create a DynamoDB table with local secondary index and a composite key
     TodosTable:
