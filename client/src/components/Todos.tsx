@@ -47,18 +47,14 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
   onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
     try {
       const dueDate = this.calculateDueDate()
-      if (this.state.newTodoName.length > 0) {
-        const newTodo = await createTodo(this.props.auth.getIdToken(), {
-          name: this.state.newTodoName,
-          dueDate
-        })
-        this.setState({
-          todos: [...this.state.todos, newTodo],
-          newTodoName: ''
-        })
-      } else {
-        alert('Task name can\'t be empty');
-      }
+      const newTodo = await createTodo(this.props.auth.getIdToken(), {
+        name: this.state.newTodoName,
+        dueDate
+      })
+      this.setState({
+        todos: [...this.state.todos, newTodo],
+        newTodoName: ''
+      })
     } catch {
       alert('Todo creation failed')
     }
@@ -68,7 +64,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     try {
       await deleteTodo(this.props.auth.getIdToken(), todoId)
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId !== todoId)
+        todos: this.state.todos.filter((todo) => todo.todoId !== todoId)
       })
     } catch {
       alert('Todo deletion failed')
@@ -101,11 +97,11 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         loadingTodos: false
       })
     } catch (e) {
-      let errorMessage = "Failed to fetch todos: ";
+      let errorMessage = 'Failed to fetch todos: '
       if (e instanceof Error) {
-        errorMessage = e.message;
+        errorMessage = e.message
       }
-      alert(errorMessage);
+      alert(errorMessage)
     }
   }
 
@@ -114,7 +110,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
       <div>
         <Header as="h1">TODOs</Header>
         {this.renderCreateTodoInput()}
-        {this.state.todos.length > 0 && this.renderTodos()}
+        {this.renderTodos()}
       </div>
     )
   }

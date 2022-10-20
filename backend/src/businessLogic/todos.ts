@@ -39,8 +39,13 @@ export async function createTodo(todoRequest: CreateTodoRequest, userId: string)
     }
 
     try {
-        await todoAccess.insertTodoItem(todoItem)
-        return todoItem
+        if(todoRequest.name.length >= 1){
+            await todoAccess.insertTodoItem(todoItem)
+            return todoItem
+        }
+        else{
+            logger.error('Create item failed')
+        }
     } catch (err) {
         logger.error("Unable to save ToDo Item", {
             methodName: 'todos.intertTodoItem',
